@@ -12,7 +12,6 @@ app.use(express.json());
 
 app.post("/send-message", async (req, res) => {
   const { message } = req.body;
-  console.log("message: ", message);
   if (!message || message.trim() === "") {
     res.status(400).json({ status: "Please enter a message to send" });
   }
@@ -24,11 +23,15 @@ app.post("/send-message", async (req, res) => {
     await channel.assertQueue("queue", {
       durable: false,
     });
-    channel.sendToQueue(queue, Buffer.from(message));
+    const sentMsg = channel.sendToQueue(queue, Buffer.from(message), {
+      persistent: false,
+    });
 
-    console.log(" [x] Sent:", message);
+    console.log("sent msg res: ", sentMsg);
 
-    res.json({ status: `${message} sent to queue` });
+    console.log("✅ Sent:", message);
+
+    res.json({ message: `${message}` });
 
     setTimeout(() => {
       connection.close();

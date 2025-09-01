@@ -3,11 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Message Sender</title>
+    <link rel="shortcut icon" href="./logo.ico" type="image/x-icon" />
+
+    <title>RabbitMQ</title>
     <style>
       body {
         font-family: "Inter", sans-serif;
-        height: 100vh;
         margin: 0;
         background: linear-gradient(135deg, #6366f1, #3b82f6);
       }
@@ -107,7 +108,12 @@
   <body>
     <div class="container">
       <h2>Send Message to RabbitMQ</h2>
-      <input type="text" id="message" placeholder="Type your message..." />
+      <input
+        type="text"
+        id="message"
+        placeholder="Type your message..."
+        onkeydown="enterPressed(event)"
+      />
       <button onClick="sendMessage()">Send</button>
       <p id="error"></p>
 
@@ -116,6 +122,10 @@
 
     <script>
       const messages = [];
+
+      function enterPressed(event) {
+        console.log("Event: ", event);
+      }
 
       async function sendMessage() {
         const msg = document.getElementById("message").value;
@@ -139,7 +149,7 @@
           });
 
           const data = await response.json();
-          messages.push(msg);
+          messages.push(data.message);
           document.getElementById("message").value = "";
           renderMessages(messagesList);
         } catch (err) {
