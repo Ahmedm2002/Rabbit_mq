@@ -18,7 +18,7 @@ async function receiveMsg() {
   channel.consume(
     queue,
     function msg(msg) {
-      console.log(" [x] Received %s", msg.content.toString());
+      console.log(" [x] Received: ", msg.content.toString());
     },
     { noAck: true }
   );

@@ -4,36 +4,157 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Message Sender</title>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #6366f1, #3b82f6);
+      }
+
+      .container {
+        margin: 10px auto;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        max-width: 90%;
+        color: #fff;
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+
+      input {
+        width: 92%;
+        padding: 0.9rem;
+        border-radius: 12px;
+        border: none;
+        outline: none;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      input::placeholder {
+        color: #ddd;
+      }
+
+      button {
+        width: 100%;
+        padding: 0.9rem;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4f46e5, #2563eb);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #4338ca, #1d4ed8);
+      }
+
+      #error {
+        color: #fca5a5;
+        margin-top: 0.8rem;
+        font-size: 0.9rem;
+      }
+
+      #messagesList {
+        margin-top: 1.5rem;
+        text-align: left;
+      }
+
+      #messagesList h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .message-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.8rem;
+        border-radius: 10px;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+        color: #f1f5f9;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
   </head>
   <body>
-    <h2>Send Message to RabbitMQ</h2>
-    <label for="message">Enter Message: </label><br />
-    <input type="text" id="message" />
-    <button onClick="sendMessage()">Send</button>
+    <div class="container">
+      <h2>Send Message to RabbitMQ</h2>
+      <input type="text" id="message" placeholder="Type your message..." />
+      <button onClick="sendMessage()">Send</button>
+      <p id="error"></p>
 
-    <p id="status"></p>
+      <div id="messagesList"></div>
+    </div>
 
     <script>
+      const messages = [];
+
       async function sendMessage() {
-        console.log("sendmessage invoked");
         const msg = document.getElementById("message").value;
-        const status = document.getElementById("status");
-        console.log("msg:", msg);
+        const error = document.getElementById("error");
+        const messagesList = document.getElementById("messagesList");
+
+        error.innerText = "";
+
         if (!msg || msg.trim() === "") {
-          status.innerText = "Please enter a message to send";
+          error.innerText = "Please enter a message to send";
           return;
         }
-        const response = await fetch("http://localhost:5000/send-message", {
-          method: "POST",
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify({ message: msg }),
+
+        try {
+          const response = await fetch("http://localhost:5000/send-message", {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({ message: msg }),
+          });
+
+          const data = await response.json();
+          messages.push(msg);
+          document.getElementById("message").value = "";
+          renderMessages(messagesList);
+        } catch (err) {
+          error.innerText = "Error sending message!";
+        }
+      }
+
+      function renderMessages(container) {
+        container.innerHTML = "<h3>Sent Messages:</h3>";
+        messages.forEach((m, i) => {
+          const div = document.createElement("div");
+          div.className = "message-item";
+          div.innerText = `${i + 1}. ${m}`;
+          container.appendChild(div);
         });
-
-        const data = await response.json();
-
-        status.innerText = data.status;
       }
     </script>
   </body>

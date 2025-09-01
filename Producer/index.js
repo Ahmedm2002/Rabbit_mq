@@ -26,9 +26,9 @@ app.post("/send-message", async (req, res) => {
     });
     channel.sendToQueue(queue, Buffer.from(message));
 
-    console.log(" [x] Sent from web:", message);
+    console.log(" [x] Sent:", message);
 
-    res.json({ status: "Message sent to queue!" });
+    res.json({ status: `${message} sent to queue` });
 
     setTimeout(() => {
       connection.close();
