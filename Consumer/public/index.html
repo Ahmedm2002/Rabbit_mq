@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="./logo.ico" type="image/x-icon" />
+    <title>RabbitMQ Receiver</title>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #6366f1, #3b82f6);
+      }
+
+      .container {
+        margin: 40px auto;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 420px;
+        max-width: 90%;
+        color: #fff;
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+
+      #messagesList {
+        margin-top: 1.5rem;
+        text-align: left;
+      }
+
+      #messagesList h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+        text-align: center;
+      }
+
+      .message-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.8rem;
+        border-radius: 10px;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+        color: #f1f5f9;
+        animation: fadeIn 0.3s ease;
+      }
+
+      button {
+        margin-top: 1rem;
+        width: 100%;
+        padding: 0.9rem;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4f46e5, #2563eb);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #4338ca, #1d4ed8);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Received Messages</h2>
+      <button onclick="clearMessages()">Clear Messages</button>
+
+      <div id="messagesList">
+        <h3>No messages received yet</h3>
+      </div>
+    </div>
+
+    <script>
+      let messages = [];
+      const messagesList = document.getElementById("messagesList");
+
+      const eventSource = new EventSource("/messages");
+
+      eventSource.onmessage = function (event) {
+        const msg = event.data;
+        messages.push(msg);
+        renderMessages(messagesList);
+      };
+
+      function clearMessages() {
+        messages = [];
+        renderMessages(messagesList);
+      }
+
+      function renderMessages(container) {
+        container.innerHTML = "";
+        if (messages.length === 0) {
+          container.innerHTML =
+            "<h3 style='text-align:center'>No messages received yet</h3>";
+        } else {
+          container.innerHTML =
+            "<h3 style='text-align:center'>Live Stream</h3>";
+          messages.forEach((m, i) => {
+            const div = document.createElement("div");
+            div.className = "message-item";
+            div.innerText = `${i + 1}. ${m}`;
+            container.appendChild(div);
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

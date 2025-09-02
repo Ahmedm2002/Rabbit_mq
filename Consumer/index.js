@@ -3,8 +3,11 @@ import amqp from "amqplib";
 
 const app = express();
 app.use(express.json());
+app.use(express.static("public"));
 
-async function receiveMsg() {
+let client = null;
+
+async function startConsumer() {
   const connection = await amqp.connect("amqp://localhost");
 
   const channel = await connection.createChannel();
@@ -19,12 +22,32 @@ async function receiveMsg() {
     queue,
     function msg(msg) {
       console.log("[x] Received: ", msg.content.toString());
+      if (client) {
+        client.write(`data: ${msg.content.toString()}\n\n`);
+      }
     },
     { noAck: true }
   );
 }
-receiveMsg();
+
+startConsumer();
+
+app.get("/messages", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+  client = res;
+
+  req.on("close", () => {
+    console.log("Client disconnected");
+  });
+});
+
+app.get("/", (req, res) => {
+  res.status(200).sendFile("index.html");
+});
 
 app.listen(3000, () => {
-  console.log("Server running");
+  console.log("Consumer running");
 });
