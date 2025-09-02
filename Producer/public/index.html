@@ -51,6 +51,7 @@
 
       button {
         width: 100%;
+        height: 100%;
         padding: 0.9rem;
         border: none;
         border-radius: 12px;
@@ -68,7 +69,7 @@
       }
 
       #error {
-        color: #fca5a5;
+        color: red;
         margin-top: 0.8rem;
         font-size: 0.9rem;
       }
@@ -113,28 +114,44 @@
         id="message"
         placeholder="Type your message..."
         onkeydown="enterPressed(event)"
+        autofocus
       />
       <button onClick="sendMessage()">Send</button>
       <p id="error"></p>
-
+      <button
+        style="width: 20%; align-self: flex-end"
+        onclick="clearMessages()"
+      >
+        Clear
+      </button>
+      <h3 id="messageTitle"></h3>
       <div id="messagesList"></div>
     </div>
 
     <script>
-      const messages = [];
+      let messages = [];
+      const messagesList = document.getElementById("messagesList");
+      const error = document.getElementById("error");
 
       function enterPressed(event) {
-        console.log("Event: ", event);
+        if (event.key === "Enter") {
+          sendMessage();
+        }
+      }
+
+      function clearMessages() {
+        messages = [];
+        error.innerHTML = "";
+        renderMessages(messagesList);
       }
 
       async function sendMessage() {
-        const msg = document.getElementById("message").value;
-        const error = document.getElementById("error");
-        const messagesList = document.getElementById("messagesList");
-
+        const msg = document.getElementById("message");
+        let msgValue = msg.value;
         error.innerText = "";
 
-        if (!msg || msg.trim() === "") {
+        if (!msgValue || msgValue.trim() === "") {
+          msg.value = "";
           error.innerText = "Please enter a message to send";
           return;
         }
@@ -145,12 +162,18 @@
             headers: {
               "Content-type": "application/json",
             },
-            body: JSON.stringify({ message: msg }),
+            body: JSON.stringify({ message: msgValue.trim() }),
           });
 
           const data = await response.json();
+
+          if (!data.success) {
+            error.innerText = `${data.status}`;
+            return;
+          }
+
           messages.push(data.message);
-          document.getElementById("message").value = "";
+          msg.value = "";
           renderMessages(messagesList);
         } catch (err) {
           error.innerText = "Error sending message!";
@@ -158,7 +181,12 @@
       }
 
       function renderMessages(container) {
-        container.innerHTML = "<h3>Sent Messages:</h3>";
+        if (messages.length === 0) {
+          container.innerHTML =
+            "<h3 style='text-align:center'>No messages to display</h3>";
+        } else
+          container.innerHTML =
+            "<h3 style='text-align:center'>Sent Messages</h3>";
         messages.forEach((m, i) => {
           const div = document.createElement("div");
           div.className = "message-item";

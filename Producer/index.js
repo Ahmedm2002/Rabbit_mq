@@ -1,14 +1,10 @@
 import express from "express";
 import amqp from "amqplib";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 app.use(express.json());
+
+app.use(express.static("public"));
 
 app.post("/send-message", async (req, res) => {
   const { message } = req.body;
@@ -20,30 +16,33 @@ app.post("/send-message", async (req, res) => {
     const connection = await amqp.connect("amqp://localhost");
     const channel = await connection.createChannel();
     const queue = "messageQueue";
-    await channel.assertQueue("queue", {
+    await channel.assertQueue(queue, {
       durable: false,
     });
-    const sentMsg = channel.sendToQueue(queue, Buffer.from(message), {
-      persistent: false,
+    channel.sendToQueue(queue, Buffer.from(message.trim()));
+
+    console.log("[x] Sent:", message);
+
+    res.status(200).json({
+      success: true,
+      message: `${message}`,
     });
-
-    console.log("sent msg res: ", sentMsg);
-
-    console.log("✅ Sent:", message);
-
-    res.json({ message: `${message}` });
 
     setTimeout(() => {
       connection.close();
     }, 500);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: "Error sending message" });
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      status: "Error sending message",
+      err,
+    });
   }
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile("index.html");
 });
 
 app.listen(5000, () => {
