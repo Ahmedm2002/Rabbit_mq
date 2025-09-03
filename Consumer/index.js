@@ -41,7 +41,6 @@ app.get("/messages", async (req, res) => {
   client = res;
 
   if (lastMessagaes.length > 0) {
-    res.write(`data: Messages when you were away`);
     lastMessagaes.forEach((message) => {
       res.write(`data: ${message}\n\n`);
     });
