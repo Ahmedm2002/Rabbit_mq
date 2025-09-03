@@ -6,6 +6,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 let client = null;
+let lastMessagaes = [];
 
 async function startConsumer() {
   const connection = await amqp.connect("amqp://localhost");
@@ -22,6 +23,8 @@ async function startConsumer() {
       console.log("[x] Received: ", msg.content.toString());
       if (client) {
         client.write(`data: ${msg.content.toString()}\n\n`);
+      } else {
+        lastMessagaes.push(msg.content.toString());
       }
     },
     { noAck: true }
@@ -37,8 +40,17 @@ app.get("/messages", async (req, res) => {
   res.flushHeaders();
   client = res;
 
+  if (lastMessagaes.length > 0) {
+    res.write(`data: Messages when you were away`);
+    lastMessagaes.forEach((message) => {
+      res.write(`data: ${message}\n\n`);
+    });
+    lastMessagaes = [];
+  }
+
   req.on("close", () => {
     console.log("Client disconnected");
+    client = null;
   });
 });
 
