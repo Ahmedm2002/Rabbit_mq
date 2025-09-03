@@ -6,6 +6,14 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
+const connection = await amqp.connect("amqp://localhost");
+const channel = await connection.createChannel();
+const queue = "messageQueue";
+
+await channel.assertQueue(queue, {
+  durable: false,
+});
+
 app.post("/send-message", async (req, res) => {
   const { message } = req.body;
   if (!message || message.trim() === "") {
@@ -13,12 +21,6 @@ app.post("/send-message", async (req, res) => {
   }
 
   try {
-    const connection = await amqp.connect("amqp://localhost");
-    const channel = await connection.createChannel();
-    const queue = "messageQueue";
-    await channel.assertQueue(queue, {
-      durable: false,
-    });
     channel.sendToQueue(queue, Buffer.from(message.trim()));
 
     console.log("[x] Sent:", message);
@@ -27,10 +29,6 @@ app.post("/send-message", async (req, res) => {
       success: true,
       message: `${message}`,
     });
-
-    setTimeout(() => {
-      connection.close();
-    }, 500);
   } catch (err) {
     console.log(err);
     res.status(500).json({

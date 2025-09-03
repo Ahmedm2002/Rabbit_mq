@@ -5,125 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="./logo.ico" type="image/x-icon" />
 
-    <title>RabbitMQ</title>
+    <title>RabbitMQ Producer</title>
     <style>
       body {
-        font-family: "Inter", sans-serif;
-        margin: 0;
-        background: linear-gradient(135deg, #6366f1, #3b82f6);
+        font-family: Arial, sans-serif;
+        margin: 32px;
+        background: #f5f6fa;
+        color: #333;
       }
 
       .container {
-        margin: 10px auto;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        width: 400px;
-        max-width: 90%;
-        color: #fff;
-        text-align: center;
+        background: #ffffff;
+        border: 1px solid #e6e8f0;
+        border-radius: 8px;
+        padding: 24px;
+        width: 91%;
+        max-width: 720px;
+        margin: auto;
       }
 
       h2 {
-        margin-bottom: 1.5rem;
-        font-size: 1.8rem;
-        font-weight: 600;
+        margin: 0 0 16px;
+        font-size: 20px;
+        color: #222;
       }
 
-      input {
-        width: 92%;
-        padding: 0.9rem;
-        border-radius: 12px;
-        border: none;
+      input[type="text"] {
+        padding: 10px 12px;
+        width: 91%;
+        max-width: 520px;
+        border: 1px solid #d3d7e0;
+        border-radius: 6px;
+        font-size: 14px;
         outline: none;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff;
       }
-
-      input::placeholder {
-        color: #ddd;
+      input[type="text"]:focus {
+        border-color: #93b4ff;
       }
 
       button {
-        width: 100%;
-        height: 100%;
-        padding: 0.9rem;
+        padding: 10px 14px;
         border: none;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #4f46e5, #2563eb);
-        color: white;
-        font-size: 1rem;
-        font-weight: 600;
+        border-radius: 6px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        font-size: 14px;
       }
 
-      button:hover {
-        transform: translateY(-2px);
-        background: linear-gradient(135deg, #4338ca, #1d4ed8);
+      #send {
+        background: #2563eb;
+        color: #fff;
+        margin-left: 8px;
+      }
+      #send:hover {
+        background: #1e40af;
+      }
+
+      #clearMessages {
+        display: block;
+        margin: 12px 0 0 auto;
+        background: transparent;
+        display: flex;
+        align-items: flex-end;
+        color: #2563eb;
+        border: 1px solid #2563eb;
+      }
+      #clearMessages:hover {
+        background: #eef3ff;
       }
 
       #error {
-        color: red;
-        margin-top: 0.8rem;
-        font-size: 0.9rem;
+        color: #e74c3c;
+        font-size: 13px;
+        margin: 8px 0 0;
       }
 
       #messagesList {
-        margin-top: 1.5rem;
-        text-align: left;
+        margin-top: 16px;
       }
-
       #messagesList h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
+        font-size: 14px;
+        color: #666;
+        text-align: left;
+        margin: 0 0 8px;
       }
 
       .message-item {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 0.8rem;
-        border-radius: 10px;
-        margin-bottom: 0.6rem;
-        font-size: 0.95rem;
-        color: #f1f5f9;
-        animation: fadeIn 0.3s ease;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(5px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        background: #eaf2ff;
+        border: 1px solid #dfe8ff;
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #2d3748;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h2>Send Message to RabbitMQ</h2>
-      <input
-        type="text"
-        id="message"
-        placeholder="Type your message..."
-        onkeydown="enterPressed(event)"
-        autofocus
-      />
-      <button onClick="sendMessage()">Send</button>
-      <p id="error"></p>
-      <button
-        style="width: 20%; align-self: flex-end"
-        onclick="clearMessages()"
+      <h2 style="text-align: center">Send Messages</h2>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 2px;
+          align-items: center;
+          justify-content: center;
+        "
       >
+        <input
+          type="text"
+          id="message"
+          placeholder="Type your message..."
+          onkeydown="enterPressed(event)"
+          autofocus
+        />
+        <button onClick="sendMessage()" id="send">Send</button>
+      </div>
+      <button style="width: 20%" onclick="clearMessages()" id="clearMessages">
         Clear
       </button>
+      <p id="error"></p>
+
       <h3 id="messageTitle"></h3>
       <div id="messagesList"></div>
     </div>
@@ -132,6 +134,11 @@
       let messages = [];
       const messagesList = document.getElementById("messagesList");
       const error = document.getElementById("error");
+      const clearMsgs = document.getElementById("clearMessages");
+
+      if (messages.length === 0) {
+        clearMsgs.style.display = "none";
+      }
 
       function enterPressed(event) {
         if (event.key === "Enter") {
@@ -153,6 +160,7 @@
         if (!msgValue || msgValue.trim() === "") {
           msg.value = "";
           error.innerText = "Please enter a message to send";
+
           return;
         }
 
@@ -184,9 +192,12 @@
         if (messages.length === 0) {
           container.innerHTML =
             "<h3 style='text-align:center'>No messages to display</h3>";
-        } else
+          clearMsgs.style.display = "none";
+        } else {
           container.innerHTML =
             "<h3 style='text-align:center'>Sent Messages</h3>";
+          clearMsgs.style.display = "inline-block";
+        }
         messages.forEach((m, i) => {
           const div = document.createElement("div");
           div.className = "message-item";

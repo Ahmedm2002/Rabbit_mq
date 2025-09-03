@@ -16,8 +16,6 @@ async function startConsumer() {
 
   channel.assertQueue(queue, { durable: false });
 
-  console.log(" [*] Waiting for messages in:", queue);
-
   channel.consume(
     queue,
     function msg(msg) {
